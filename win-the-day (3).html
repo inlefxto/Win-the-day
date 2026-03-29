@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Win The Day">
+<meta name="theme-color" content="#0d0d0d">
+<title>Win The Day</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{background:#0d0d0d;min-height:100vh;}
+body{font-family:'DM Sans',sans-serif;color:#f0ece4;padding:env(safe-area-inset-top,20px) 0 env(safe-area-inset-bottom,20px);}
+.app{max-width:480px;margin:0 auto;padding:24px 18px 48px;}
+
+.hd{text-align:center;margin-bottom:18px;}
+.ht{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:3px;color:#f0ece4;line-height:1;}
+.hd2{font-size:11px;color:#555;letter-spacing:2px;text-transform:uppercase;margin-top:4px;}
+.hdate{font-size:12px;color:#e8c96d;margin-top:4px;letter-spacing:1px;}
+
+.sync-bar{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:14px;}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#2a2a2a;transition:background 0.3s;}
+.sync-dot.ok{background:#3a6a3a;}
+.sync-dot.syncing{background:#e8c96d;animation:pulse 1s infinite;}
+.sync-dot.err{background:#6a2a2a;}
+.sync-txt{font-size:10px;color:#444;letter-spacing:1px;text-transform:uppercase;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+.quote-card{background:#111;border-left:2px solid #e8c96d;padding:14px 16px;margin-bottom:18px;border-radius:0 8px 8px 0;}
+.quote-text{font-size:13px;color:#c8c4bc;line-height:1.65;font-style:italic;}
+.quote-author{font-size:10px;color:#555;margin-top:7px;letter-spacing:1px;text-transform:uppercase;}
+
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px;}
+.stat{background:#141414;border:0.5px solid #222;border-radius:10px;padding:12px 8px;text-align:center;}
+.stat-n{font-family:'Bebas Neue',sans-serif;font-size:28px;color:#e8c96d;line-height:1;}
+.stat-l{font-size:9px;color:#444;letter-spacing:1px;text-transform:uppercase;margin-top:3px;}
+
+.week-strip{display:flex;gap:5px;margin-bottom:16px;}
+.wd{flex:1;background:#141414;border:0.5px solid #222;border-radius:8px;padding:8px 3px;text-align:center;}
+.wd.today{border-color:#3a3a1e;}
+.wd-label{font-size:9px;color:#444;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
+.wd-dots{display:flex;gap:3px;justify-content:center;}
+.dot{width:7px;height:7px;border-radius:50%;background:#1e1e1e;border:0.5px solid #2a2a2a;}
+.dot.am{background:#e8c96d;border-color:#e8c96d;}
+.dot.pm{background:#5a8a6a;border-color:#5a8a6a;}
+
+.win-banner{display:none;text-align:center;padding:14px;background:#1a1a0e;border:0.5px solid #3a3a1e;border-radius:10px;margin-bottom:14px;}
+.win-banner.v{display:block;}
+.win-t{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:#e8c96d;}
+.win-s{font-size:11px;color:#555;margin-top:3px;}
+
+.session{background:#141414;border:0.5px solid #222;border-radius:12px;margin-bottom:10px;overflow:hidden;}
+.session.done{border-color:#3a3a1e;}
+.session.pm-s.done{border-color:#2a3a2e;}
+.sess-hd{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none;}
+.sess-icon{width:34px;height:34px;border-radius:8px;background:#1e1e1e;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.sess-info{flex:1;}
+.sess-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1.5px;color:#f0ece4;}
+.session.done .sess-title{color:#444;}
+.sess-sub{font-size:11px;color:#3a3a3a;margin-top:2px;}
+.sess-prog{font-size:11px;color:#555;margin-right:6px;white-space:nowrap;}
+.sess-chev{font-size:11px;color:#333;transition:transform 0.2s;flex-shrink:0;}
+.session.open .sess-chev{transform:rotate(180deg);}
+.sess-body{display:none;padding:4px 16px 14px;border-top:0.5px solid #1a1a1a;}
+.session.open .sess-body{display:block;}
+
+.item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid #181818;cursor:pointer;user-select:none;}
+.item:last-child{border-bottom:none;}
+.ibox{width:18px;height:18px;border-radius:5px;border:1px solid #2e2e2e;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+.item.done .ibox{background:#3a3a1e;border-color:#e8c96d;}
+.pm-s .item.done .ibox{background:#1e2e22;border-color:#5a8a6a;}
+.itick{display:none;width:7px;height:5px;border-left:1.5px solid #e8c96d;border-bottom:1.5px solid #e8c96d;transform:rotate(-45deg) translate(1px,-0.5px);}
+.item.done .itick{display:block;}
+.pm-s .item.done .itick{border-color:#5a8a6a;}
+.itext{flex:1;}
+.ilabel{font-size:14px;color:#777;line-height:1.4;transition:color 0.15s;}
+.item.done .ilabel{color:#333;text-decoration:line-through;}
+.isub{font-size:11px;color:#2a2a2a;margin-top:3px;font-style:italic;line-height:1.4;}
+
+.ref{background:#111;border:0.5px solid #1e1e1e;border-radius:10px;margin-bottom:14px;overflow:hidden;}
+.ref-hd{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;user-select:none;}
+.ref-title{font-size:11px;color:#3a3a3a;letter-spacing:1.5px;text-transform:uppercase;}
+.ref-chev{font-size:11px;color:#2e2e2e;transition:transform 0.2s;}
+.ref.open .ref-chev{transform:rotate(180deg);}
+.ref-body{display:none;padding:4px 16px 14px;border-top:0.5px solid #181818;}
+.ref.open .ref-body{display:block;}
+.hrow{padding:7px 0;border-bottom:0.5px solid #181818;display:flex;gap:8px;align-items:flex-start;}
+.hrow:last-child{border-bottom:none;}
+.hnum{font-family:'Bebas Neue',sans-serif;font-size:13px;color:#3a3a1e;min-width:16px;line-height:1.6;}
+.hname{font-size:12px;color:#333;line-height:1.6;}
+
+.install-banner{background:#141414;border:0.5px solid #2e2e1a;border-radius:10px;padding:14px 16px;margin-bottom:14px;display:none;}
+.install-banner.v{display:block;}
+.install-title{font-size:12px;color:#e8c96d;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.install-text{font-size:12px;color:#555;line-height:1.6;}
+.install-steps{font-size:12px;color:#444;margin-top:8px;line-height:1.8;}
+.install-dismiss{background:transparent;border:none;color:#333;font-size:10px;cursor:pointer;letter-spacing:1px;text-transform:uppercase;font-family:'DM Sans',sans-serif;padding:0;margin-top:10px;display:block;}
+
+.reset-btn{display:block;width:100%;margin-top:8px;padding:11px;background:transparent;border:0.5px solid #1e1e1e;border-radius:8px;color:#2a2a2a;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;}
+.reset-btn:active{border-color:#333;color:#555;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="hd">
+    <div class="ht">Win The Day</div>
+    <div class="hd2">morning · evening · streak</div>
+    <div class="hdate" id="date-lbl"></div>
+  </div>
+
+  <div class="sync-bar">
+    <div class="sync-dot" id="sync-dot"></div>
+    <div class="sync-txt" id="sync-txt">connecting...</div>
+  </div>
+
+  <div class="install-banner" id="install-banner">
+    <div class="install-title">Add to home screen</div>
+    <div class="install-text">Install this as an app for quick access anytime.</div>
+    <div class="install-steps" id="install-steps"></div>
+    <button class="install-dismiss" onclick="dismissInstall()">got it, dismiss</button>
+  </div>
+
+  <div class="quote-card">
+    <div class="quote-text" id="quote-text"></div>
+    <div class="quote-author" id="quote-author"></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-n" id="s-streak">0</div><div class="stat-l">Day streak</div></div>
+    <div class="stat"><div class="stat-n" id="s-week">0</div><div class="stat-l">This week</div></div>
+    <div class="stat"><div class="stat-n" id="s-total">0</div><div class="stat-l">Days won</div></div>
+  </div>
+
+  <div class="week-strip" id="week-strip"></div>
+
+  <div class="win-banner" id="win-banner">
+    <div class="win-t">Day won</div>
+    <div class="win-s">both sessions complete · streak continues</div>
+  </div>
+
+  <div class="session" id="sess-am">
+    <div class="sess-hd" onclick="toggleSess('am')">
+      <div class="sess-icon">☀️</div>
+      <div class="sess-info">
+        <div class="sess-title">Morning ritual</div>
+        <div class="sess-sub">First thing · sets the tone for the day</div>
+      </div>
+      <div class="sess-prog" id="prog-am">0/5</div>
+      <div class="sess-chev">▾</div>
+    </div>
+    <div class="sess-body" id="body-am"></div>
+  </div>
+
+  <div class="session pm-s" id="sess-pm">
+    <div class="sess-hd" onclick="toggleSess('pm')">
+      <div class="sess-icon">🌙</div>
+      <div class="sess-info">
+        <div class="sess-title">Evening ritual</div>
+        <div class="sess-sub">Before bed · closes the loop on the day</div>
+      </div>
+      <div class="sess-prog" id="prog-pm">0/5</div>
+      <div class="sess-chev">▾</div>
+    </div>
+    <div class="sess-body" id="body-pm"></div>
+  </div>
+
+  <div class="ref" id="habits-ref">
+    <div class="ref-hd" onclick="document.getElementById('habits-ref').classList.toggle('open')">
+      <div class="ref-title">8 habits reminder</div>
+      <div class="ref-chev">▾</div>
+    </div>
+    <div class="ref-body" id="ref-body"></div>
+  </div>
+
+  <button class="reset-btn" onclick="resetToday()">Reset today</button>
+</div>
+
+<script>
+const JBIN_MASTER = '$2a$10$9kZAl6.nZl9CS0d6xEVkceL1ZKolCBRiiuLYQg/zYaTDADPqUmjHi';
+const JBIN_URL = 'https://api.jsonbin.io/v3/b';
+const BIN_ID_KEY = 'wtd_bin_id_v3';
+const LOCAL_KEY = 'wtd_local_v3';
+const INSTALL_KEY = 'wtd_install_ok';
+
+const AM = [
+  {id:'am1',label:'Stretch and drink water',sub:'Move your body, hydrate before anything else'},
+  {id:'am2',label:'Brain dump',sub:'Write everything on your mind — clear your head completely'},
+  {id:'am3',label:"Activate yesterday's plan",sub:'Re-read what you planned last night, set your intention'},
+  {id:'am4',label:'3 gratitudes',sub:'One must be mundane — coffee, sunlight, a quiet moment'},
+  {id:'am5',label:'One priority for today',sub:'Just one — the thing that makes today a win if done'},
+];
+const PM = [
+  {id:'pm1',label:"Re-read this morning's journal",sub:'Close the loop on what you wrote and felt'},
+  {id:'pm2',label:'What did I learn or apply today?',sub:'One line — keeps the learning habit alive'},
+  {id:'pm3',label:'Did I do the hard thing?',sub:'Honest yes or no — no judgement, just awareness'},
+  {id:'pm4',label:'Plan tomorrow',sub:'Tasks, priorities — move anything unfinished forward'},
+  {id:'pm5',label:'Evening journal',sub:'Free write — whatever is on your mind tonight'},
+];
+const HABITS = [
+  'Win tomorrow today — plan the night before, move unfinished tasks forward',
+  'Protect your morning — no inputs, move your body, hydrate',
+  'Mindful journaling — brain dump, priorities, 3 gratitudes',
+  'Learn every day — read 10 pages, apply it, teach it',
+  'Engineer your environment — remove temptations, choose your circle',
+  'Measure your success — find your north star metric, hit it daily',
+  'Fight for momentum — done over perfect, kill negativity, celebrate wins',
+  'Choose hard — one scary challenge daily, commit publicly, stack habits',
+];
+
+const QUOTES = [
+  {q:"You are exactly where you deserve to be. If you want to be somewhere else, do something about it.",a:"Andrew Tate"},
+  {q:"Stay hard. The only easy day was yesterday.",a:"David Goggins"},
+  {q:"Discipline equals freedom.",a:"Jocko Willink"},
+  {q:"Be the wolf. Wolves don't lose sleep over the opinions of sheep.",a:"Andrew Tate"},
+  {q:"You have to build calluses on your brain just like how you build calluses on your hands.",a:"David Goggins"},
+  {q:"Good. If it was easy, everyone would do it.",a:"Jocko Willink"},
+  {q:"The man who chases two rabbits catches neither. Lock in on one target.",a:"Andrew Tate"},
+  {q:"We live in a world where mediocrity is rewarded. Don't be mediocre.",a:"Tristan Tate"},
+  {q:"We all have the ability to do uncomfortable things. Most people just choose not to.",a:"David Goggins"},
+  {q:"Don't expect to be motivated every day. Be disciplined instead.",a:"Jocko Willink"},
+  {q:"Weak men wait for opportunities. Strong men make them.",a:"Andrew Tate"},
+  {q:"The most powerful thing you can do is take ownership of your life — completely.",a:"Jocko Willink"},
+  {q:"Pain unlocks a secret doorway in the mind, one that leads to both peak performance and beautiful silence.",a:"David Goggins"},
+  {q:"Your network is your net worth. Who you surround yourself with determines who you become.",a:"Tristan Tate"},
+  {q:"Don't let your emotions make your decisions.",a:"Andrew Tate"},
+  {q:"Average is a failing plan. Average doesn't work.",a:"Andy Frisella"},
+  {q:"The problem is you think you deserve a reward for trying. You don't. Results are the only currency.",a:"Andy Frisella"},
+  {q:"You have to be willing to do the things today others won't do in order to have the things tomorrow others won't have.",a:"Andy Frisella"},
+  {q:"Only you can master your mind, which is what it takes to live a bold life.",a:"David Goggins"},
+  {q:"Stop letting people who do so little for you control so much of your mind, feelings and emotions.",a:"Will Smith"},
+  {q:"The cost of discipline is always less than the pain of regret.",a:"Andy Frisella"},
+  {q:"Hard times create strong men. Strong men create good times.",a:"Tristan Tate"},
+  {q:"If you want to be uncommon amongst uncommon people, you have to do something extraordinary.",a:"David Goggins"},
+  {q:"Comfort is the enemy of progress.",a:"Jocko Willink"},
+  {q:"You already know what you have to do. The question is whether you're going to do it.",a:"Jocko Willink"},
+  {q:"Most people celebrate when they win. Champions stay focused on what they haven't won yet.",a:"Andy Frisella"},
+  {q:"Every day is a new opportunity to be better than you were yesterday.",a:"Andrew Tate"},
+  {q:"The mind is the most powerful weapon you have. Train it.",a:"David Goggins"},
+];
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function weekStart(){
+  const d=new Date(); d.setHours(0,0,0,0);
+  const dow=d.getDay(); d.setDate(d.getDate()+((dow===0)?-6:1-dow));
+  return d.toISOString().slice(0,10);
+}
+function getDailyQuote(){
+  const day=new Date().getDate();
+  return QUOTES[day % QUOTES.length];
+}
+
+function blankState(){
+  return {date:todayStr(),amDone:{},pmDone:{},streak:0,totalWon:0,history:{}};
+}
+function loadLocal(){
+  try{ const r=localStorage.getItem(LOCAL_KEY); if(r) return JSON.parse(r); }catch(e){}
+  return blankState();
+}
+function saveLocal(s){ try{ localStorage.setItem(LOCAL_KEY,JSON.stringify(s)); }catch(e){} }
+
+let state = loadLocal();
+let binId = localStorage.getItem(BIN_ID_KEY)||null;
+let syncTimer = null;
+
+function rollover(){
+  if(state.date!==todayStr()){
+    const amFull=AM.every(i=>state.amDone&&state.amDone[i.id]);
+    const pmFull=PM.every(i=>state.pmDone&&state.pmDone[i.id]);
+    const won=amFull&&pmFull;
+    if(!state.history)state.history={};
+    state.history[state.date]={am:amFull,pm:pmFull,won};
+    if(won){state.streak=(state.streak||0)+1;state.totalWon=(state.totalWon||0)+1;}
+    else{state.streak=0;}
+    state.date=todayStr();state.amDone={};state.pmDone={};
+    saveLocal(state);
+  }
+}
+rollover();
+
+/* ---- SYNC ---- */
+function setSyncUI(status,msg){
+  const dot=document.getElementById('sync-dot');
+  const txt=document.getElementById('sync-txt');
+  dot.className='sync-dot';
+  if(status==='ok')dot.classList.add('ok');
+  else if(status==='syncing')dot.classList.add('syncing');
+  else if(status==='err')dot.classList.add('err');
+  txt.textContent=msg;
+}
+
+function mergeStates(remote){
+  if(!remote)return;
+  if((remote.streak||0)>(state.streak||0)){
+    state.streak=remote.streak;
+    state.totalWon=Math.max(state.totalWon||0,remote.totalWon||0);
+  }
+  if(remote.history){
+    Object.keys(remote.history).forEach(k=>{
+      if(!state.history[k])state.history[k]=remote.history[k];
+    });
+  }
+  if(remote.date===todayStr()){
+    if(remote.amDone)Object.assign(state.amDone,remote.amDone);
+    if(remote.pmDone)Object.assign(state.pmDone,remote.pmDone);
+  }
+  saveLocal(state);
+}
+
+async function createBin(){
+  setSyncUI('syncing','creating sync...');
+  try{
+    const res=await fetch(JBIN_URL,{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'X-Master-Key':JBIN_MASTER,
+        'X-Bin-Name':'wtd-nicholai',
+        'X-Bin-Private':'true'
+      },
+      body:JSON.stringify(state)
+    });
+    if(!res.ok){setSyncUI('err','sync error');return;}
+    const data=await res.json();
+    binId=data.metadata&&data.metadata.id;
+    if(binId){
+      localStorage.setItem(BIN_ID_KEY,binId);
+      setSyncUI('ok','synced');
+    }else{setSyncUI('err','sync error');}
+  }catch(e){setSyncUI('err','offline');}
+}
+
+async function pullBin(){
+  if(!binId)return false;
+  setSyncUI('syncing','syncing...');
+  try{
+    const res=await fetch(`${JBIN_URL}/${binId}/latest`,{
+      headers:{'X-Master-Key':JBIN_MASTER}
+    });
+    if(!res.ok){setSyncUI('err','sync error');return false;}
+    const data=await res.json();
+    mergeStates(data.record);
+    setSyncUI('ok','synced');
+    return true;
+  }catch(e){setSyncUI('err','offline');return false;}
+}
+
+async function pushBin(){
+  if(!binId){await createBin();return;}
+  setSyncUI('syncing','saving...');
+  try{
+    const res=await fetch(`${JBIN_URL}/${binId}`,{
+      method:'PUT',
+      headers:{
+        'Content-Type':'application/json',
+        'X-Master-Key':JBIN_MASTER
+      },
+      body:JSON.stringify(state)
+    });
+    if(!res.ok){setSyncUI('err','sync error');return;}
+    setSyncUI('ok','synced');
+  }catch(e){setSyncUI('err','offline');}
+}
+
+function schedulePush(){
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(()=>pushBin(),1500);
+}
+
+async function initSync(){
+  if(!binId){
+    await createBin();
+  }else{
+    const ok=await pullBin();
+    if(ok){
+      render();
+      buildItems('body-am',AM,state.amDone,false);
+      buildItems('body-pm',PM,state.pmDone,true);
+    }
+  }
+}
+
+/* ---- QUOTE ---- */
+function showDailyQuote(){
+  const q=getDailyQuote();
+  document.getElementById('quote-text').textContent='\u201c'+q.q+'\u201d';
+  document.getElementById('quote-author').textContent='\u2014 '+q.a;
+}
+
+/* ---- BUILD UI ---- */
+function buildItems(cid,items,doneObj,isPm){
+  const c=document.getElementById(cid);c.innerHTML='';
+  items.forEach(item=>{
+    const row=document.createElement('div');
+    row.className='item'+(doneObj[item.id]?' done':'');
+    row.id='i-'+item.id;
+    row.innerHTML=`<div class="ibox"><div class="itick"></div></div><div class="itext"><div class="ilabel">${item.label}</div><div class="isub">${item.sub}</div></div>`;
+    row.onclick=()=>{
+      doneObj[item.id]=!doneObj[item.id];
+      checkWin();
+      saveLocal(state);
+      render();
+      schedulePush();
+    };
+    c.appendChild(row);
+  });
+}
+
+function checkWin(){
+  const amFull=AM.every(i=>state.amDone[i.id]);
+  const pmFull=PM.every(i=>state.pmDone[i.id]);
+  if(amFull&&pmFull&&!state.history[todayStr()]){
+    state.history[todayStr()]={am:true,pm:true,won:true};
+    state.streak=(state.streak||0)+1;
+    state.totalWon=(state.totalWon||0)+1;
+  }
+}
+
+function buildRef(){
+  const c=document.getElementById('ref-body');c.innerHTML='';
+  HABITS.forEach((h,i)=>{
+    const row=document.createElement('div');row.className='hrow';
+    row.innerHTML=`<div class="hnum">${i+1}</div><div class="hname">${h}</div>`;
+    c.appendChild(row);
+  });
+}
+
+function toggleSess(s){
+  const el=document.getElementById('sess-'+s);
+  const isOpen=el.classList.contains('open');
+  document.querySelectorAll('.session.open').forEach(x=>x.classList.remove('open'));
+  if(!isOpen)el.classList.add('open');
+}
+
+function getWeekWins(){
+  if(!state.history)return 0;
+  const ws=weekStart();
+  return Object.keys(state.history).filter(k=>k>=ws&&state.history[k]&&state.history[k].won).length;
+}
+
+function buildWeekStrip(todayAm,todayPm){
+  const c=document.getElementById('week-strip');c.innerHTML='';
+  const days=['M','T','W','T','F','S','S'];
+  const today=new Date();today.setHours(0,0,0,0);
+  const dow=today.getDay();
+  const mo=(dow===0)?-6:1-dow;
+  for(let i=0;i<7;i++){
+    const d=new Date(today);d.setDate(today.getDate()+mo+i);
+    const ds=d.toISOString().slice(0,10);
+    const isToday=ds===todayStr();
+    const hist=state.history&&state.history[ds];
+    let amD=hist?hist.am:false,pmD=hist?hist.pm:false;
+    if(isToday){amD=todayAm;pmD=todayPm;}
+    const wd=document.createElement('div');
+    wd.className='wd'+(isToday?' today':'');
+    wd.innerHTML=`<div class="wd-label">${days[i]}</div><div class="wd-dots"><div class="dot${amD?' am':''}"></div><div class="dot${pmD?' pm':''}"></div></div>`;
+    c.appendChild(wd);
+  }
+}
+
+function render(){
+  const amC=AM.filter(i=>state.amDone[i.id]).length;
+  const pmC=PM.filter(i=>state.pmDone[i.id]).length;
+  const amFull=amC===AM.length,pmFull=pmC===PM.length,won=amFull&&pmFull;
+  document.getElementById('prog-am').textContent=amC+'/'+AM.length;
+  document.getElementById('prog-pm').textContent=pmC+'/'+PM.length;
+  document.getElementById('sess-am').classList.toggle('done',amFull);
+  document.getElementById('sess-pm').classList.toggle('done',pmFull);
+  document.getElementById('win-banner').classList.toggle('v',won);
+  AM.forEach(i=>{const el=document.getElementById('i-'+i.id);if(el)el.classList.toggle('done',!!state.amDone[i.id]);});
+  PM.forEach(i=>{const el=document.getElementById('i-'+i.id);if(el)el.classList.toggle('done',!!state.pmDone[i.id]);});
+  document.getElementById('s-streak').textContent=state.streak||0;
+  document.getElementById('s-week').textContent=getWeekWins();
+  document.getElementById('s-total').textContent=state.totalWon||0;
+  buildWeekStrip(amFull,pmFull);
+}
+
+function resetToday(){
+  state.amDone={};state.pmDone={};
+  delete state.history[todayStr()];
+  saveLocal(state);
+  buildItems('body-am',AM,state.amDone,false);
+  buildItems('body-pm',PM,state.pmDone,true);
+  render();schedulePush();
+}
+
+/* ---- INSTALL BANNER ---- */
+function showInstallBanner(){
+  if(localStorage.getItem(INSTALL_KEY))return;
+  const banner=document.getElementById('install-banner');
+  const steps=document.getElementById('install-steps');
+  const ua=navigator.userAgent;
+  if(/iphone|ipad|ipod/i.test(ua)){
+    steps.innerHTML='Safari: tap the <strong style="color:#e8c96d">Share</strong> button \u2192 <strong style="color:#e8c96d">Add to Home Screen</strong>';
+    banner.classList.add('v');
+  }else if(/android/i.test(ua)){
+    steps.innerHTML='Chrome: tap menu <strong style="color:#e8c96d">(\u22ee)</strong> \u2192 <strong style="color:#e8c96d">Add to Home Screen</strong>';
+    banner.classList.add('v');
+  }
+}
+function dismissInstall(){
+  localStorage.setItem(INSTALL_KEY,'1');
+  document.getElementById('install-banner').classList.remove('v');
+}
+
+/* ---- PWA MANIFEST ---- */
+function injectManifest(){
+  const m={name:'Win The Day',short_name:'Win The Day',start_url:'./',display:'standalone',background_color:'#0d0d0d',theme_color:'#0d0d0d',icons:[{src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230d0d0d' rx='20'/><text y='68' x='50' text-anchor='middle' font-size='60'>🔥</text></svg>",sizes:'any',type:'image/svg+xml'}]};
+  const blob=new Blob([JSON.stringify(m)],{type:'application/json'});
+  const link=document.createElement('link');
+  link.rel='manifest';link.href=URL.createObjectURL(blob);
+  document.head.appendChild(link);
+}
+
+/* ---- INIT ---- */
+document.getElementById('date-lbl').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+injectManifest();
+showDailyQuote();
+buildItems('body-am',AM,state.amDone,false);
+buildItems('body-pm',PM,state.pmDone,true);
+buildRef();
+document.getElementById('sess-am').classList.add('open');
+render();
+showInstallBanner();
+initSync();
+</script>
+</body>
+</html>
